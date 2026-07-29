@@ -7,6 +7,14 @@ export default defineNuxtConfig({
       title: 'Partnership Letter — Innovative Design at USC',
       meta: [
         {
+          name: 'viewport',
+          content: 'width=device-width, initial-scale=1, viewport-fit=cover',
+        },
+        {
+          name: 'theme-color',
+          content: '#faf9f6',
+        },
+        {
           name: 'description',
           content: 'A partnership proposal from Innovative Design at USC.',
         },

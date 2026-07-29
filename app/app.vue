@@ -5,6 +5,7 @@ import {
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
+  XMarkIcon,
 } from '@heroicons/vue/24/outline'
 
 const isPlaying = ref(true)
@@ -13,11 +14,14 @@ const isRequestingOpen = ref(false)
 const isOfferOpen = ref(false)
 const isLightboxOpen = ref(false)
 const isLightboxClosing = ref(false)
+const isLandscapeLightbox = ref(false)
+const isLightboxChromeVisible = ref(true)
 const currentLookbookSlide = ref(0)
 const carouselTrack = ref<HTMLElement | null>(null)
 const lookbookSlot = ref<HTMLElement | null>(null)
 const lookbookSurface = ref<HTMLElement | null>(null)
 const lightboxBackdrop = ref<HTMLElement | null>(null)
+const lightboxChrome = ref<HTMLElement | null>(null)
 const previousSlideButton = ref<HTMLButtonElement | null>(null)
 const footerOrbitWrap = ref<HTMLElement | null>(null)
 const carouselCopies = ref(6)
@@ -35,13 +39,13 @@ let lightboxRevision = 0
 let returnFocus: HTMLElement | null = null
 let previousBodyOverflow = ''
 let previousBodyPaddingRight = ''
+let previousThemeColor = '#faf9f6'
 let footerRevealFrame = 0
 let footerMotionQuery: MediaQueryList | null = null
 const footerOrbitVisibleHeight = 527
 let footerRevealDistance = footerOrbitVisibleHeight
 let previousFooterProgress = -1
 let previousFooterLockupProgress = -1
-let isFooterOrbitActive = false
 
 const communityImages = [
   { src: '/images/community-01.png', width: 468, alt: 'Innovative Design members outdoors' },
@@ -152,6 +156,10 @@ function isPhoneViewport() {
   return Math.min(window.innerWidth, window.innerHeight) <= 600
 }
 
+function isLandscapePhoneViewport() {
+  return isPhoneViewport() && window.innerWidth > window.innerHeight
+}
+
 function measureFooterRevealDistance() {
   const footer = document.querySelector<HTMLElement>('.letter-footer')
   const footerSafeSpace = footer
@@ -176,12 +184,6 @@ function updateFooterReveal() {
     ? Number(distanceToBottom <= 1)
     : continuousProgress
   const lockupProgress = Math.min(1, Math.max(0, (progress - 0.28) / 0.72))
-  const shouldActivate = distanceToBottom <= footerRevealDistance + viewportHeight
-
-  if (shouldActivate !== isFooterOrbitActive) {
-    wrap.classList.toggle('footer-orbit-wrap--active', shouldActivate)
-    isFooterOrbitActive = shouldActivate
-  }
 
   if (progress !== previousFooterProgress) {
     wrap.style.setProperty('--footer-reveal-progress', progress.toFixed(4))
@@ -239,7 +241,7 @@ function getPreviewRect(): DOMRect {
 }
 
 function syncLightboxLayout(rect = getPreviewRect()) {
-  const isLandscapePhone = isPhoneViewport() && window.innerWidth > window.innerHeight
+  const isLandscapePhone = isLandscapePhoneViewport()
   const controlsLeft = Math.max(0, rect.left)
   const controlsWidth = Math.min(window.innerWidth, rect.width)
   const controlsTop = isLandscapePhone
@@ -303,8 +305,12 @@ function clearSurfaceRect() {
 function lockBodyScroll() {
   previousBodyOverflow = document.body.style.overflow
   previousBodyPaddingRight = document.body.style.paddingRight
+  const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+  previousThemeColor = themeColor?.content || '#faf9f6'
   const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
   const currentPadding = Number.parseFloat(getComputedStyle(document.body).paddingRight) || 0
+  document.documentElement.classList.add('lookbook-active')
+  themeColor?.setAttribute('content', '#000000')
   document.body.style.overflow = 'hidden'
   if (scrollbarWidth > 0) {
     document.body.style.paddingRight = `${currentPadding + scrollbarWidth}px`
@@ -312,6 +318,9 @@ function lockBodyScroll() {
 }
 
 function unlockBodyScroll() {
+  const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+  document.documentElement.classList.remove('lookbook-active')
+  themeColor?.setAttribute('content', previousThemeColor)
   document.body.style.overflow = previousBodyOverflow
   document.body.style.paddingRight = previousBodyPaddingRight
 }
@@ -356,12 +365,18 @@ async function openLightbox(trigger?: HTMLElement | null) {
 
   lockBodyScroll()
   isLightboxClosing.value = false
+  isLandscapeLightbox.value = isLandscapePhoneViewport()
+  isLightboxChromeVisible.value = !isLandscapeLightbox.value
   currentLookbookSlide.value = 0
   syncLightboxLayout()
   preloadAdjacentSlides(0)
   isLightboxOpen.value = true
   await nextTick()
-  previousSlideButton.value?.focus({ preventScroll: true })
+  if (isLandscapeLightbox.value) {
+    lightboxChrome.value?.focus({ preventScroll: true })
+  } else {
+    previousSlideButton.value?.focus({ preventScroll: true })
+  }
 
   await animateSurface(sourceRect, getPreviewRect(), 460, revision)
   if (revision === lightboxRevision) lightboxPhase = 'open'
@@ -404,6 +419,8 @@ async function closeLightbox() {
   clearSurfaceRect()
   isLightboxOpen.value = false
   isLightboxClosing.value = false
+  isLandscapeLightbox.value = false
+  isLightboxChromeVisible.value = true
   lightboxPhase = 'closed'
   unlockBodyScroll()
   await nextTick()
@@ -411,7 +428,19 @@ async function closeLightbox() {
 }
 
 function handleLookbookClick(event: MouseEvent) {
-  if (lightboxPhase === 'closed') void openLightbox(event.currentTarget as HTMLElement)
+  if (lightboxPhase === 'closed') {
+    void openLightbox(event.currentTarget as HTMLElement)
+  } else if (lightboxPhase === 'open' && isLandscapeLightbox.value) {
+    isLightboxChromeVisible.value = !isLightboxChromeVisible.value
+  }
+}
+
+function handleLightboxBackdropClick() {
+  if (isLandscapeLightbox.value) {
+    isLightboxChromeVisible.value = !isLightboxChromeVisible.value
+  } else {
+    void closeLightbox()
+  }
 }
 
 function handleExpandClick(event: MouseEvent) {
@@ -435,12 +464,19 @@ function handleLightboxResize() {
     clearSurfaceRect()
     isLightboxOpen.value = false
     isLightboxClosing.value = false
+    isLandscapeLightbox.value = false
+    isLightboxChromeVisible.value = true
     lightboxPhase = 'closed'
     unlockBodyScroll()
     void nextTick(() => returnFocus?.focus({ preventScroll: true }))
     return
   }
   const currentRect = lookbookSurface.value.getBoundingClientRect()
+  const nextLandscapeLightbox = isLandscapePhoneViewport()
+  if (nextLandscapeLightbox !== isLandscapeLightbox.value) {
+    isLandscapeLightbox.value = nextLandscapeLightbox
+    isLightboxChromeVisible.value = !nextLandscapeLightbox
+  }
   const revision = ++lightboxRevision
   lightboxPhase = 'opening'
   const nextRect = getPreviewRect()
@@ -463,7 +499,7 @@ function handleKeydown(event: KeyboardEvent) {
     showLookbookSlide(1)
   } else if (event.key === 'Tab' && lightboxPhase !== 'closed') {
     const controls = Array.from(
-      lightboxBackdrop.value?.querySelectorAll<HTMLButtonElement>('button') ?? [],
+      lightboxChrome.value?.querySelectorAll<HTMLButtonElement>('button') ?? [],
     )
     if (!controls.length) return
     const firstControl = controls[0]
@@ -949,17 +985,44 @@ onBeforeUnmount(() => {
       v-if="isLightboxOpen"
       ref="lightboxBackdrop"
       class="lightbox"
-      :class="{ 'lightbox--closing': isLightboxClosing }"
+      :class="{
+        'lightbox--closing': isLightboxClosing,
+        'lightbox--landscape': isLandscapeLightbox,
+      }"
+      :style="lightboxLayoutStyle"
+      aria-hidden="true"
+      @click="handleLightboxBackdropClick"
+    />
+
+    <div
+      v-if="isLightboxOpen"
+      ref="lightboxChrome"
+      class="lookbook-chrome"
+      :class="{
+        'lookbook-chrome--closing': isLightboxClosing,
+        'lookbook-chrome--landscape': isLandscapeLightbox,
+        'lookbook-chrome--visible': isLightboxChromeVisible,
+      }"
       :style="lightboxLayoutStyle"
       role="dialog"
       aria-modal="true"
-      aria-label="Innovative Design lookbook preview. Click outside or press Escape to close."
+      aria-label="Innovative Design lookbook preview"
       tabindex="-1"
-      @click="closeLightbox"
     >
       <p class="lookbook-orientation-notice">
         Turn your phone horizontally
       </p>
+      <header class="lookbook-landscape-header">
+        <p>Lookbook</p>
+        <button
+          class="lookbook-close"
+          type="button"
+          aria-label="Close lookbook preview"
+          @click="closeLightbox"
+        >
+          <XMarkIcon aria-hidden="true" />
+        </button>
+      </header>
       <div class="lookbook-controls" @click.stop>
         <button
           ref="previousSlideButton"

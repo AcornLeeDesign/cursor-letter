@@ -1147,28 +1147,23 @@ h4 {
   --footer-lockup-progress: 0;
   bottom: 0;
   contain: layout style;
-  content-visibility: hidden;
   height: var(--footer-orbit-visible-height);
   isolation: isolate;
   left: -212px;
   pointer-events: none;
   position: fixed;
-  visibility: hidden;
   width: calc(100% + 424px);
   z-index: 0;
 }
 
-.footer-orbit-wrap--active {
-  content-visibility: visible;
-  visibility: visible;
-}
-
 .footer-orbit-hemisphere {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   clip-path: inset(-180px 0 0);
   height: 100%;
   overflow: visible;
   position: relative;
-  transform: scaleY(var(--footer-reveal-progress));
+  transform: translate3d(0, 0, 0) scaleY(var(--footer-reveal-progress));
   transform-origin: center bottom;
   will-change: transform;
   width: 100%;
@@ -1342,6 +1337,29 @@ h4 {
   animation: lightbox-backdrop-in 320ms ease both;
 }
 
+.lightbox--landscape {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: #000;
+}
+
+html.lookbook-active,
+html.lookbook-active body {
+  background: #000;
+}
+
+.lookbook-chrome {
+  inset: 0;
+  outline: none;
+  pointer-events: none;
+  position: fixed;
+  z-index: 52;
+}
+
+.lookbook-landscape-header {
+  display: none;
+}
+
 .lookbook-orientation-notice {
   align-items: center;
   color: rgb(255 255 255 / 74%);
@@ -1373,6 +1391,7 @@ h4 {
   justify-content: center;
   left: var(--lookbook-controls-left);
   position: fixed;
+  pointer-events: auto;
   top: var(--lookbook-controls-top);
   transition:
     left 220ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -1380,6 +1399,29 @@ h4 {
     top 220ms cubic-bezier(0.22, 1, 0.36, 1),
     width 220ms cubic-bezier(0.22, 1, 0.36, 1);
   width: var(--lookbook-controls-width);
+}
+
+.lookbook-close {
+  align-items: center;
+  background: rgb(0 0 0 / 56%);
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  display: flex;
+  height: 44px;
+  justify-content: center;
+  padding: 10px;
+  width: 44px;
+}
+
+.lookbook-close:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.lookbook-close svg {
+  height: 24px;
+  width: 24px;
 }
 
 .lookbook-arrow {
@@ -1424,8 +1466,9 @@ h4 {
   }
 }
 
-.lightbox--closing .lookbook-controls,
-.lightbox--closing .lookbook-orientation-notice {
+.lookbook-chrome--closing .lookbook-controls,
+.lookbook-chrome--closing .lookbook-orientation-notice,
+.lookbook-chrome--closing .lookbook-landscape-header {
   opacity: 0;
 }
 
@@ -1557,6 +1600,7 @@ h4 {
     top: 1%;
     transform: rotate(-3.08deg);
     width: 97%;
+    z-index: 2;
   }
 
   .event-photo--two {
@@ -1615,7 +1659,7 @@ h4 {
   .event-photo--one:hover {
     box-shadow: none;
     transform: rotate(-3.08deg);
-    z-index: 1;
+    z-index: 2;
   }
 
   .event-photo--two:hover {
@@ -1707,11 +1751,69 @@ h4 {
 }
 
 @media (max-height: 600px) and (orientation: landscape) {
-  .lookbook-controls {
-    background: rgb(8 8 8 / 62%);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+  .lookbook-placeholder--active {
+    border-radius: 0 !important;
+  }
+
+  .lookbook-chrome--landscape .lookbook-orientation-notice {
+    display: none;
+  }
+
+  .lookbook-chrome--landscape .lookbook-landscape-header {
+    align-items: center;
+    color: #fff;
+    display: flex;
+    font-size: 14px;
+    justify-content: space-between;
+    left: max(16px, env(safe-area-inset-left));
+    line-height: 20px;
+    opacity: 0;
+    pointer-events: none;
+    position: fixed;
+    right: max(16px, env(safe-area-inset-right));
+    top: max(12px, env(safe-area-inset-top));
+    transform: translateY(-8px);
+    transition:
+      opacity 180ms ease,
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 180ms ease;
+    visibility: hidden;
+  }
+
+  .lookbook-chrome--landscape .lookbook-close {
+    pointer-events: auto;
+  }
+
+  .lookbook-chrome--landscape .lookbook-controls {
+    animation: none;
+    background: rgb(8 8 8 / 82%);
     border-radius: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    left: auto;
+    opacity: 0;
+    padding: 0 4px;
+    right: max(16px, env(safe-area-inset-right));
+    top: auto;
+    transform: translateY(8px);
+    transition:
+      opacity 180ms ease,
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 180ms ease;
+    visibility: hidden;
+    width: auto;
+  }
+
+  .lookbook-chrome--landscape.lookbook-chrome--visible .lookbook-landscape-header,
+  .lookbook-chrome--landscape.lookbook-chrome--visible .lookbook-controls {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+  }
+
+  .lookbook-chrome--landscape.lookbook-chrome--closing .lookbook-landscape-header,
+  .lookbook-chrome--landscape.lookbook-chrome--closing .lookbook-controls {
+    opacity: 0;
+    visibility: hidden;
   }
 }
 
