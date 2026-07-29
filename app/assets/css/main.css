@@ -929,6 +929,10 @@ h4 {
   margin-top: 0;
 }
 
+.section.proposal + .letter-footer {
+  margin-top: 44px;
+}
+
 .writing-section > h3,
 .proposal > h3 {
   align-items: flex-end;

@@ -820,6 +820,7 @@ onBeforeUnmount(() => {
                     <li><strong>Tailored content and product placement</strong></li>
                     <li><strong>Access to student feedback groups</strong></li>
                     <li><strong>Talent opportunities</strong></li>
+                    <li><strong>...and more! We're open to discussion</strong></li>
                   </ol>
                 </div>
               </div>
