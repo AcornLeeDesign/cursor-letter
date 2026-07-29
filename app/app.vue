@@ -2,11 +2,6 @@
 import {
   PlayIcon,
 } from '@heroicons/vue/24/solid'
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  XMarkIcon,
-} from '@heroicons/vue/24/outline'
 
 const isPlaying = ref(true)
 const isContextOpen = ref(true)
@@ -366,7 +361,7 @@ async function openLightbox(trigger?: HTMLElement | null) {
   lockBodyScroll()
   isLightboxClosing.value = false
   isLandscapeLightbox.value = isLandscapePhoneViewport()
-  isLightboxChromeVisible.value = !isLandscapeLightbox.value
+  isLightboxChromeVisible.value = true
   currentLookbookSlide.value = 0
   syncLightboxLayout()
   preloadAdjacentSlides(0)
@@ -475,7 +470,7 @@ function handleLightboxResize() {
   const nextLandscapeLightbox = isLandscapePhoneViewport()
   if (nextLandscapeLightbox !== isLandscapeLightbox.value) {
     isLandscapeLightbox.value = nextLandscapeLightbox
-    isLightboxChromeVisible.value = !nextLandscapeLightbox
+    isLightboxChromeVisible.value = true
   }
   const revision = ++lightboxRevision
   lightboxPhase = 'opening'
@@ -1020,7 +1015,7 @@ onBeforeUnmount(() => {
           aria-label="Close lookbook preview"
           @click="closeLightbox"
         >
-          <XMarkIcon aria-hidden="true" />
+          <img src="/images/lookbook-close.svg" alt="" aria-hidden="true" />
         </button>
       </header>
       <div class="lookbook-controls" @click.stop>
@@ -1031,7 +1026,7 @@ onBeforeUnmount(() => {
           aria-label="Previous lookbook slide"
           @click="showLookbookSlide(-1)"
         >
-          <ChevronLeftIcon aria-hidden="true" />
+          <img src="/images/lookbook-previous.svg" alt="" aria-hidden="true" />
         </button>
         <p class="lookbook-status" aria-live="polite" aria-atomic="true">
           {{ currentLookbookSlide + 1 }} of {{ lookbookSlides.length }}
@@ -1042,7 +1037,7 @@ onBeforeUnmount(() => {
           aria-label="Next lookbook slide"
           @click="showLookbookSlide(1)"
         >
-          <ChevronRightIcon aria-hidden="true" />
+          <img src="/images/lookbook-next.svg" alt="" aria-hidden="true" />
         </button>
       </div>
     </div>
