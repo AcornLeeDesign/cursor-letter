@@ -38,6 +38,10 @@ let previousBodyPaddingRight = ''
 let footerRevealFrame = 0
 let footerMotionQuery: MediaQueryList | null = null
 const footerOrbitVisibleHeight = 527
+let footerRevealDistance = footerOrbitVisibleHeight
+let previousFooterProgress = -1
+let previousFooterLockupProgress = -1
+let isFooterOrbitActive = false
 
 const communityImages = [
   { src: '/images/community-01.png', width: 468, alt: 'Innovative Design members outdoors' },
@@ -144,33 +148,51 @@ function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
+function isPhoneViewport() {
+  return Math.min(window.innerWidth, window.innerHeight) <= 600
+}
+
+function measureFooterRevealDistance() {
+  const footer = document.querySelector<HTMLElement>('.letter-footer')
+  const footerSafeSpace = footer
+    ? Number.parseFloat(getComputedStyle(footer).marginBottom)
+    : footerOrbitVisibleHeight
+  footerRevealDistance = Math.max(footerOrbitVisibleHeight, footerSafeSpace)
+  scheduleFooterReveal()
+}
+
 function updateFooterReveal() {
   footerRevealFrame = 0
   const wrap = footerOrbitWrap.value
   if (!wrap) return
 
-  const root = document.documentElement
-  const viewportHeight = root.clientHeight
-  const maxScroll = Math.max(0, root.scrollHeight - viewportHeight)
-  const scrollTop = Math.min(maxScroll, Math.max(0, root.scrollTop || window.scrollY))
+  const scroller = document.scrollingElement ?? document.documentElement
+  const viewportHeight = document.documentElement.clientHeight
+  const maxScroll = Math.max(0, scroller.scrollHeight - viewportHeight)
+  const scrollTop = Math.min(maxScroll, Math.max(0, scroller.scrollTop))
   const distanceToBottom = Math.max(0, maxScroll - scrollTop)
-  const footer = document.querySelector<HTMLElement>('.letter-footer')
-  const footerSafeSpace = footer
-    ? Number.parseFloat(getComputedStyle(footer).marginBottom)
-    : footerOrbitVisibleHeight
-  const revealDistance = Math.max(footerOrbitVisibleHeight, footerSafeSpace)
-  const continuousProgress = Math.min(1, Math.max(0, 1 - distanceToBottom / revealDistance))
+  const continuousProgress = Math.min(1, Math.max(0, 1 - distanceToBottom / footerRevealDistance))
   const progress = footerMotionQuery?.matches
     ? Number(distanceToBottom <= 1)
     : continuousProgress
   const lockupProgress = Math.min(1, Math.max(0, (progress - 0.28) / 0.72))
+  const shouldActivate = distanceToBottom <= footerRevealDistance + viewportHeight
 
-  wrap.style.setProperty('--footer-reveal-progress', progress.toFixed(4))
-  wrap.style.setProperty('--footer-lockup-progress', lockupProgress.toFixed(4))
-  wrap.style.setProperty('--footer-lockup-offset', `${((1 - lockupProgress) * 28).toFixed(1)}px`)
-  wrap.dataset.revealProgress = progress.toFixed(4)
-  wrap.dataset.revealVisibleHeight = `${(progress * footerOrbitVisibleHeight).toFixed(1)}px`
-  wrap.dataset.revealDistance = `${Math.round(revealDistance)}px`
+  if (shouldActivate !== isFooterOrbitActive) {
+    wrap.classList.toggle('footer-orbit-wrap--active', shouldActivate)
+    isFooterOrbitActive = shouldActivate
+  }
+
+  if (progress !== previousFooterProgress) {
+    wrap.style.setProperty('--footer-reveal-progress', progress.toFixed(4))
+    previousFooterProgress = progress
+  }
+
+  if (lockupProgress !== previousFooterLockupProgress) {
+    wrap.style.setProperty('--footer-lockup-progress', lockupProgress.toFixed(4))
+    wrap.style.setProperty('--footer-lockup-offset', `${((1 - lockupProgress) * 28).toFixed(1)}px`)
+    previousFooterLockupProgress = lockupProgress
+  }
 }
 
 function scheduleFooterReveal() {
@@ -179,6 +201,30 @@ function scheduleFooterReveal() {
 }
 
 function getPreviewRect(): DOMRect {
+  if (isPhoneViewport()) {
+    const isLandscape = window.innerWidth > window.innerHeight
+    if (isLandscape) {
+      const height = window.innerHeight
+      const width = height * (16 / 9)
+      return new DOMRect(
+        (window.innerWidth - width) / 2,
+        0,
+        width,
+        height,
+      )
+    }
+
+    const width = window.innerWidth
+    const height = width * (9 / 16)
+    const packageHeight = height + 56
+    return new DOMRect(
+      0,
+      Math.max(56, (window.innerHeight - packageHeight) / 2),
+      width,
+      height,
+    )
+  }
+
   const maxWidth = window.innerWidth * 0.8
   const maxHeight = Math.max(180, window.innerHeight - 112)
   const width = Math.min(maxWidth, maxHeight * (16 / 9))
@@ -193,11 +239,21 @@ function getPreviewRect(): DOMRect {
 }
 
 function syncLightboxLayout(rect = getPreviewRect()) {
+  const isLandscapePhone = isPhoneViewport() && window.innerWidth > window.innerHeight
+  const controlsLeft = Math.max(0, rect.left)
+  const controlsWidth = Math.min(window.innerWidth, rect.width)
+  const controlsTop = isLandscapePhone
+    ? Math.max(8, window.innerHeight - 64)
+    : rect.top + rect.height + 8
+
   lightboxLayoutStyle.value = {
     '--lookbook-left': `${rect.left}px`,
     '--lookbook-top': `${rect.top}px`,
     '--lookbook-width': `${rect.width}px`,
     '--lookbook-height': `${rect.height}px`,
+    '--lookbook-controls-left': `${controlsLeft}px`,
+    '--lookbook-controls-top': `${controlsTop}px`,
+    '--lookbook-controls-width': `${controlsWidth}px`,
   }
 }
 
@@ -426,7 +482,7 @@ onMounted(() => {
   scheduleCarouselMeasure()
   footerMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
   footerMotionQuery.addEventListener('change', scheduleFooterReveal)
-  scheduleFooterReveal()
+  measureFooterRevealDistance()
   preloadAdjacentSlides(0)
   const track = carouselTrack.value
   const viewport = track?.parentElement
@@ -444,7 +500,7 @@ onMounted(() => {
   window.addEventListener('load', scheduleFooterReveal)
   window.addEventListener('pageshow', scheduleFooterReveal)
   window.addEventListener('resize', handleLightboxResize)
-  window.addEventListener('resize', scheduleFooterReveal)
+  window.addEventListener('resize', measureFooterRevealDistance)
 })
 
 onBeforeUnmount(() => {
@@ -458,7 +514,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('load', scheduleFooterReveal)
   window.removeEventListener('pageshow', scheduleFooterReveal)
   window.removeEventListener('resize', handleLightboxResize)
-  window.removeEventListener('resize', scheduleFooterReveal)
+  window.removeEventListener('resize', measureFooterRevealDistance)
   lightboxAnimation?.cancel()
   if (lightboxPhase !== 'closed') unlockBodyScroll()
 })
@@ -846,7 +902,7 @@ onBeforeUnmount(() => {
         </section>
 
         <footer class="letter-footer">
-          <h2>Thank you!</h2>
+          <h2>Thank you</h2>
           <p><strong>If this sounds interesting, we would love to discuss further!</strong></p>
           <p>We look forward to partnering with you.</p>
           <p>From,<br />Aaron Lee</p>
@@ -901,6 +957,9 @@ onBeforeUnmount(() => {
       tabindex="-1"
       @click="closeLightbox"
     >
+      <p class="lookbook-orientation-notice">
+        Turn your phone horizontally
+      </p>
       <div class="lookbook-controls" @click.stop>
         <button
           ref="previousSlideButton"

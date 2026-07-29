@@ -1146,12 +1146,21 @@ h4 {
   --footer-lockup-offset: 28px;
   --footer-lockup-progress: 0;
   bottom: 0;
+  contain: layout style;
+  content-visibility: hidden;
   height: var(--footer-orbit-visible-height);
+  isolation: isolate;
   left: -212px;
   pointer-events: none;
   position: fixed;
+  visibility: hidden;
   width: calc(100% + 424px);
   z-index: 0;
+}
+
+.footer-orbit-wrap--active {
+  content-visibility: visible;
+  visibility: visible;
 }
 
 .footer-orbit-hemisphere {
@@ -1204,7 +1213,6 @@ h4 {
 .footer-orbit__blur {
   background: url("/images/footer-orbit.svg") center / 100% 100% no-repeat;
   transform-origin: center center;
-  will-change: filter;
 }
 
 .footer-orbit__blur--soft {
@@ -1328,22 +1336,50 @@ h4 {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   inset: 0;
+  overflow: hidden;
   position: fixed;
   z-index: 50;
   animation: lightbox-backdrop-in 320ms ease both;
 }
 
+.lookbook-orientation-notice {
+  align-items: center;
+  color: rgb(255 255 255 / 74%);
+  display: flex;
+  font-size: 14px;
+  height: 44px;
+  justify-content: center;
+  left: 0;
+  line-height: 20px;
+  opacity: 0;
+  position: fixed;
+  right: 0;
+  text-align: center;
+  top: calc(var(--lookbook-top) - 44px);
+  transition:
+    opacity 180ms ease,
+    top 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 180ms ease;
+  visibility: hidden;
+}
+
 .lookbook-controls {
   align-items: center;
+  animation: lookbook-controls-in 220ms 140ms ease both;
   color: #fff;
   display: grid;
   gap: 8px;
   grid-template-columns: 48px minmax(64px, auto) 48px;
   justify-content: center;
-  left: var(--lookbook-left);
+  left: var(--lookbook-controls-left);
   position: fixed;
-  top: calc(var(--lookbook-top) + var(--lookbook-height) + 8px);
-  width: var(--lookbook-width);
+  top: var(--lookbook-controls-top);
+  transition:
+    left 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease,
+    top 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  width: var(--lookbook-controls-width);
 }
 
 .lookbook-arrow {
@@ -1388,6 +1424,18 @@ h4 {
   }
 }
 
+.lightbox--closing .lookbook-controls,
+.lightbox--closing .lookbook-orientation-notice {
+  opacity: 0;
+}
+
+@keyframes lookbook-controls-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
 .lightbox--closing {
   animation: lightbox-backdrop-out 380ms ease both;
 }
@@ -1401,6 +1449,38 @@ h4 {
 @media (max-width: 600px) {
   main {
     padding-top: 30px;
+  }
+
+  .lightbox {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: #000;
+  }
+
+  .lookbook-placeholder--active {
+    border-radius: 0 !important;
+  }
+
+  .brand span {
+    display: none;
+  }
+
+  .carousel-section h3,
+  .lookbook-section h3,
+  .events-section > h3 {
+    height: auto;
+    min-height: 44px;
+    padding-bottom: 12px;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: 12px;
+    width: 100%;
+  }
+
+  button,
+  .reply-button {
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   .reply-button,
@@ -1439,6 +1519,10 @@ h4 {
     display: none;
   }
 
+  .context-card__label-text {
+    margin-left: 0;
+  }
+
   .context-card__body-leading {
     align-items: center;
     display: flex;
@@ -1458,11 +1542,110 @@ h4 {
   }
 
   .event-collage {
-    height: 424px;
-    margin-bottom: -254px;
-    transform: scale(0.4);
-    transform-origin: top center;
-    width: 849.928px;
+    aspect-ratio: 506 / 795;
+    height: auto;
+    margin: 0;
+    transform: none;
+    width: 100%;
+  }
+
+  .event-photo--one {
+    border-radius: 4px;
+    border-width: 4px;
+    height: 38.1%;
+    left: 1.5%;
+    top: 1%;
+    transform: rotate(-3.08deg);
+    width: 97%;
+  }
+
+  .event-photo--two {
+    border-radius: 4px;
+    border-width: 4px;
+    height: 40.5%;
+    left: calc(7% - 4px);
+    top: 37%;
+    transform: rotate(4.57deg);
+    width: 93.7%;
+  }
+
+  .event-photo--three {
+    border-radius: 4px;
+    border-width: 3px;
+    height: 24.9%;
+    left: 54%;
+    top: 74%;
+    transform: rotate(2.49deg);
+    width: 39.1%;
+  }
+
+  .event-sticker--one {
+    border-radius: 13px;
+    border-width: 4px;
+    height: 12.9%;
+    left: 20%;
+    padding: 4px;
+    top: 72.5%;
+    transform: rotate(-34.17deg);
+    width: 20.2%;
+  }
+
+  .event-sticker--two {
+    border-radius: 12px;
+    border-width: 4px;
+    height: 11.5%;
+    left: 30%;
+    padding: 4px;
+    top: 84%;
+    transform: rotate(-5.37deg);
+    width: 18.1%;
+  }
+
+  .event-sticker--three {
+    border-radius: 13px;
+    border-width: 4px;
+    height: 13.1%;
+    left: 38%;
+    padding: 4px;
+    top: 72.5%;
+    transform: rotate(3.2deg);
+    width: 20.6%;
+  }
+
+  .event-photo--one:hover {
+    box-shadow: none;
+    transform: rotate(-3.08deg);
+    z-index: 1;
+  }
+
+  .event-photo--two:hover {
+    box-shadow: none;
+    transform: rotate(4.57deg);
+    z-index: 1;
+  }
+
+  .event-photo--three:hover {
+    box-shadow: none;
+    transform: rotate(2.49deg);
+    z-index: 1;
+  }
+
+  .event-sticker--one:hover {
+    box-shadow: 0.422px 0.422px 0.317px rgb(0 0 0 / 25%);
+    transform: rotate(-34.17deg);
+    z-index: 2;
+  }
+
+  .event-sticker--two:hover {
+    box-shadow: 0.422px 0.422px 0.317px rgb(0 0 0 / 25%);
+    transform: rotate(-5.37deg);
+    z-index: 2;
+  }
+
+  .event-sticker--three:hover {
+    box-shadow: 0.422px 0.422px 0.317px rgb(0 0 0 / 25%);
+    transform: rotate(3.2deg);
+    z-index: 2;
   }
 
   .events-section > h3 {
@@ -1485,9 +1668,9 @@ h4 {
   }
 
   .stats-secondary {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
   }
 
   .stats-secondary div {
@@ -1496,6 +1679,7 @@ h4 {
 
   .partnership-lockup {
     bottom: 70px;
+    flex-direction: column;
     font-size: clamp(14px, 4vw, 16px);
     gap: clamp(10px, 3.2vw, 16px);
     max-width: calc(100vw - 28px);
@@ -1515,8 +1699,29 @@ h4 {
 
 }
 
+@media (max-width: 600px) and (orientation: portrait) {
+  .lookbook-orientation-notice {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+  .lookbook-controls {
+    background: rgb(8 8 8 / 62%);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 12px;
+  }
+}
+
 @media (prefers-reduced-transparency: reduce) {
   .lightbox {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .lookbook-controls {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
@@ -1538,6 +1743,12 @@ h4 {
 
   .lightbox {
     animation-duration: 1ms;
+  }
+
+  .lookbook-controls,
+  .lookbook-orientation-notice {
+    animation-duration: 1ms;
+    transition-duration: 1ms;
   }
 
   .lookbook-slide-enter-active,
