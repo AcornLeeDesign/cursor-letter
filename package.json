@@ -1,0 +1,17 @@
+{
+  "name": "sponsors-letter",
+  "version": "1.0.0",
+  "description": "Innovative Design at USC partnership letter",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview"
+  },
+  "dependencies": {
+    "@heroicons/vue": "^2.2.0",
+    "nuxt": "^4.5.1"
+  }
+}
