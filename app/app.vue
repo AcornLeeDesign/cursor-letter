@@ -8,7 +8,7 @@ import {
 } from '@heroicons/vue/24/outline'
 
 const isPlaying = ref(true)
-const isContextOpen = ref(false)
+const isContextOpen = ref(true)
 const isRequestingOpen = ref(false)
 const isOfferOpen = ref(false)
 const isLightboxOpen = ref(false)
@@ -528,7 +528,7 @@ onBeforeUnmount(() => {
                   alt=""
                 />
               </span>
-              <span class="context-card__label-text">From a design student between startups &amp; corporate</span>
+              <span class="context-card__label-text">Why I love Cursor.</span>
               <img
                 class="context-card__trailing-icon"
                 src="/images/context-chevron.svg"
@@ -544,6 +544,23 @@ onBeforeUnmount(() => {
             >
               <div class="context-card__body-clip">
                 <div class="context-card__body-inner">
+                  <span class="context-card__body-leading" aria-hidden="true">
+                    <img
+                      class="context-card__logo context-card__logo--doordash"
+                      src="/images/context-logo-doordash.png"
+                      alt=""
+                    />
+                    <img
+                      class="context-card__logo context-card__logo--fleetline"
+                      src="/images/context-logo-fleetline.svg"
+                      alt=""
+                    />
+                    <img
+                      class="context-card__logo context-card__logo--cursor"
+                      src="/images/context-logo-cursor.svg"
+                      alt=""
+                    />
+                  </span>
                   <p>
                     I'm currently a product design intern at DoorDash by day, and part-time at
                     Fleetline (YC S25) by night. Composer 2.5 Fast, Design mode, and /multi-task has
