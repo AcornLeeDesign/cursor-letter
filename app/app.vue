@@ -672,7 +672,7 @@ onBeforeUnmount(() => {
         <section class="section">
           <h3 class="organization-heading">What is Innovative Design @ USC?</h3>
           <p>
-            Innovative Design a student-led creative agency comprised of the most ambitious
+            Innovative Design is a student-led creative agency comprised of the most ambitious
             creatives and community-builders with a mission to make design education and
             opportunities accessible to all.
           </p>
