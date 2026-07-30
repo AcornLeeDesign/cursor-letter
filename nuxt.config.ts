@@ -2,6 +2,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-07-28',
   css: ['~/assets/css/main.css'],
   devtools: { enabled: true },
+  modules: ['@vercel/analytics/nuxt'],
   app: {
     head: {
       title: 'Partnership Letter — Innovative Design at USC',
